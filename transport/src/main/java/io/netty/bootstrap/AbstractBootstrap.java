@@ -269,6 +269,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     }
 
     private ChannelFuture doBind(final SocketAddress localAddress) {
+        // 1. 初始化ServerSocketChannel，并向bossGroup注册
         final ChannelFuture regFuture = initAndRegister();
         final Channel channel = regFuture.channel();
         if (regFuture.cause() != null) {
@@ -278,6 +279,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         if (regFuture.isDone()) {
             // At this point we know that the registration was complete and successful.
             ChannelPromise promise = channel.newPromise();
+            // 2. 注册完成后，则进行端口绑定
             doBind0(regFuture, channel, localAddress, promise);
             return promise;
         } else {
@@ -307,7 +309,10 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     final ChannelFuture initAndRegister() {
         Channel channel = null;
         try {
+            // channelFactory通常为ReflectiveChannelFactory
+            // 1、通过反射创建 ServerSocket，如 NioServerSocket, 可直接跳到NioServerSocketChannel构造方法查看
             channel = channelFactory.newChannel();
+            // 2、对channel进行初始化，如Pipline的配置等
             init(channel);
         } catch (Throwable t) {
             if (channel != null) {
@@ -319,7 +324,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             // as the Channel is not registered yet we need to force the usage of the GlobalEventExecutor
             return new DefaultChannelPromise(new FailedChannel(), GlobalEventExecutor.INSTANCE).setFailure(t);
         }
-
+        // 3. 将生成的channel向EventLoopGroup中注册，起始就是选择一个EventLoop，用其selector进行监听
+        // 服务器启动就是将ServerSocketChannel向bossGroup注册
         ChannelFuture regFuture = config().group().register(channel);
         if (regFuture.cause() != null) {
             if (channel.isRegistered()) {

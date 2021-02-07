@@ -544,7 +544,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                         "is not bound to a wildcard address; binding to a non-wildcard " +
                         "address (" + localAddress + ") anyway as requested.");
             }
-
+            // 服务器端此时为false
             boolean wasActive = isActive();
             try {
                 doBind(localAddress);
@@ -555,6 +555,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
 
             if (!wasActive && isActive()) {
+                // 端口绑定成功后会触发事件的监听轮询
                 invokeLater(new Runnable() {
                     @Override
                     public void run() {

@@ -33,6 +33,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.SocketAddress;
 import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
@@ -83,10 +84,12 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
     }
 
     /**
+     * 将JDK NIO的ServerSocketChannel包装成NioServerSocketChannel
      * Create a new instance using the given {@link ServerSocketChannel}.
      */
     public NioServerSocketChannel(ServerSocketChannel channel) {
         super(null, channel, SelectionKey.OP_ACCEPT);
+        // 是对NioServerSocketChannel的一系列配置实例对象
         config = new NioServerSocketChannelConfig(this, javaChannel().socket());
     }
 
